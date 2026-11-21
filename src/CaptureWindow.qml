@@ -51,7 +51,6 @@ ApplicationWindow {
     }
 
     Shortcut { sequence: "Esc"; onActivated: win.release() }
-    Shortcut { sequence: "Ctrl+L"; onActivated: { win.release(); win.openLibrary() } }
 
     Item {
         anchors.fill: parent
@@ -82,6 +81,9 @@ ApplicationWindow {
                     // One Enter is a new note on a new line; Enter on an empty
                     // line (so, Enter twice) saves everything and hides.
                     Keys.onPressed: (event) => {
+                        // Tab jumps to all notes (the text box would otherwise
+                        // take it as a tab character).
+                        if (event.key === Qt.Key_Tab) { event.accepted = true; win.release(); win.openLibrary(); return }
                         if (event.key !== Qt.Key_Return && event.key !== Qt.Key_Enter) return
                         if (event.modifiers & Qt.ShiftModifier) return
                         event.accepted = true
@@ -103,7 +105,7 @@ ApplicationWindow {
             RowLayout {
                 Layout.fillWidth: true
                 Label {
-                    text: qsTr("↵↵ save · Esc hide · Ctrl+L all notes")
+                    text: qsTr("Enter twice to save · Tab for all notes")
                     color: "#5a5a60"
                     font.pixelSize: 12
                     Layout.fillWidth: true

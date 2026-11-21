@@ -3,6 +3,7 @@
         <file alias="Main.qml">Main.qml</file>
         <file alias="CaptureWindow.qml">CaptureWindow.qml</file>
         <file alias="NotesWindow.qml">NotesWindow.qml</file>
+        <file alias="NoteCard.qml">NoteCard.qml</file>
         <file alias="i18n/en.json">i18n/en.json</file>
     </qresource>
 </RCC>

@@ -7,9 +7,9 @@
 Don't multitask: dump the thought and get back to work. Press **Super + N**,
 type, press **Enter twice**, and it's gone. Flip it on, flip it off.
 
-Everything you dumped is in the **notes window** (open Lightswitch from the
-app launcher, or Ctrl+L from the capture box): grouped by day, with Open /
-Done / All, search, edit, delete, and undo.
+Open Lightswitch from the app menu to see every note as a card (like Google
+Keep): click to edit, hover for done or delete, search at the top. Tab in the
+quick editor jumps there too.
 
 Notes go to `~/Notes/lightswitch.md` as a plain Markdown checklist
 (`- [ ] 2026-11-22 14:03 · call the bank`), so any editor can read them.
@@ -23,32 +23,13 @@ window is a show, not a launch.
 
 ## Shortcuts
 
-**Capture box (Super + N)**
-
 | Key | Does |
 | --- | --- |
-| Super + N | Show / hide |
+| Super + N | Show / hide the quick editor |
 | Enter | Next note (each line is one note) |
 | Enter twice | Save everything and hide |
-| Shift + Enter | Line break inside a note |
 | Esc, or click away | Hide, keep the draft |
-| Ctrl + L | Open the notes window |
-
-**Notes window**
-
-| Key | Does |
-| --- | --- |
-| J / K, arrows | Move |
-| Space, X | Done / not done |
-| E, Enter, double-click | Edit |
-| D, Delete | Delete |
-| Ctrl + Z | Undo |
-| /, Ctrl + F | Search |
-| 1 2 3 | Open, done, all |
-| N, Ctrl + N | New note (capture box) |
-| Ctrl + O | Open the Markdown file |
-| ? | All keys |
-| Esc | Hide |
+| Tab | Go to all notes |
 
 ## Commands
 

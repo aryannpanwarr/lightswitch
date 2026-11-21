@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+"$ROOT/bin/build"
+cd "$ROOT/pkgbuild"
+makepkg -fsi "$@"
+# Restart the resident copy so the new build is the one that answers Super+N.
+lightswitch quit || true
+setsid -f lightswitch daemon >/dev/null 2>&1 || true

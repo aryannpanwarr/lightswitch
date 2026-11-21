@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Lightswitch
+Comment=Dump a thought in a second, then get back to work
+Exec=lightswitch
+Icon=lightswitch
+Terminal=false
+Categories=Utility;
+StartupWMClass=lightswitch

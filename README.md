@@ -14,6 +14,32 @@ quick editor jumps there too.
 Notes go to `~/Notes/lightswitch.md` as a plain Markdown checklist
 (`- [ ] 2026-11-22 14:03 · call the bank`), so any editor can read them.
 
+## Install
+
+Download from [Releases](../../releases/latest):
+
+- **Arch / Omarchy:** `sudo pacman -U lightswitch-0.1.0-1-x86_64.pkg.tar.zst`
+- **Other Linux (Qt 6, Wayland):** unpack `lightswitch-0.1.0-linux-x86_64.tar.gz`, run `./install.sh`
+- **Android 8+:** install `lightswitch-0.1.0.apk`, open it, tap **Allow**
+
+Then bind a key to `lightswitch-toggle` and autostart `lightswitch daemon`. On
+Omarchy:
+
+```lua
+-- ~/.config/hypr/bindings.lua
+o.bind("SUPER + N", "Lightswitch", "lightswitch-toggle")
+-- ~/.config/hypr/autostart.lua
+o.launch_on_start("lightswitch daemon")
+-- ~/.config/hypr/hyprland.lua
+o.window({ class = "lightswitch", title = "^lightswitch-capture$" }, { float = true, center = true, size = { 720, 420 }, no_anim = true })
+```
+
+## Android
+
+Triple-tap anywhere on the screen, in any app, and the editor drops in with
+the keyboard up. Enter twice or double-tap saves. The app icon opens your
+notes as cards. See [android/README.md](android/README.md).
+
 ## Why it's fast
 
 Lightswitch stays resident with its window hidden (started on login with

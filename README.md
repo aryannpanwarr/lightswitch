@@ -1,9 +1,15 @@
 # Lightswitch
 
-![Lightswitch](screenshot.png)
+![Quick capture](screenshot.png)
+
+![Notes window](screenshot-notes.png)
 
 Don't multitask: dump the thought and get back to work. Press **Super + N**,
 type, press **Enter twice**, and it's gone. Flip it on, flip it off.
+
+Everything you dumped is in the **notes window** (open Lightswitch from the
+app launcher, or Ctrl+L from the capture box): grouped by day, with Open /
+Done / All, search, edit, delete, and undo.
 
 Notes go to `~/Notes/lightswitch.md` as a plain Markdown checklist
 (`- [ ] 2026-11-22 14:03 · call the bank`), so any editor can read them.
@@ -17,6 +23,8 @@ window is a show, not a launch.
 
 ## Shortcuts
 
+**Capture box (Super + N)**
+
 | Key | Does |
 | --- | --- |
 | Super + N | Show / hide |
@@ -24,18 +32,29 @@ window is a show, not a launch.
 | Enter twice | Save everything and hide |
 | Shift + Enter | Line break inside a note |
 | Esc, or click away | Hide, keep the draft |
-| Tab | Switch between writing and the *later* list |
-| Space / Enter / X | Mark done (later list) |
-| J / K, arrows | Move (later list) |
-| Ctrl + Z | Undo done |
-| Ctrl + O | Open the notes file |
-| F1 | Shortcut overlay |
+| Ctrl + L | Open the notes window |
+
+**Notes window**
+
+| Key | Does |
+| --- | --- |
+| J / K, arrows | Move |
+| Space, X | Done / not done |
+| E, Enter, double-click | Edit |
+| D, Delete | Delete |
+| Ctrl + Z | Undo |
+| /, Ctrl + F | Search |
+| 1 2 3 | Open, done, all |
+| N, Ctrl + N | New note (capture box) |
+| Ctrl + O | Open the Markdown file |
+| ? | All keys |
+| Esc | Hide |
 
 ## Commands
 
 ```sh
 lightswitch                 # show/hide (starts it if needed)
-lightswitch later           # open on the later list
+lightswitch open            # the notes window
 lightswitch add "call bank" # save without the window
 lightswitch list [--json]   # print open notes
 lightswitch path            # notes file

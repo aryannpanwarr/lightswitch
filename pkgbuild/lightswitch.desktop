@@ -2,7 +2,7 @@
 Type=Application
 Name=Lightswitch
 Comment=Dump a thought in a second, then get back to work
-Exec=lightswitch
+Exec=lightswitch-toggle open
 Icon=lightswitch
 Terminal=false
 Categories=Utility;

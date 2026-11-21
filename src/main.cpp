@@ -71,7 +71,7 @@ public:
                         const QByteArray command = client->readLine().trimmed();
                         if (command == "toggle") emit toggleRequested();
                         else if (command == "show") emit showRequested();
-                        else if (command == "later") emit laterRequested();
+                        else if (command == "open" || command == "later") emit openRequested();
                         else if (command == "quit") QCoreApplication::quit();
                     }
                 });
@@ -84,7 +84,7 @@ public:
 signals:
     void toggleRequested();
     void showRequested();
-    void laterRequested();
+    void openRequested();
 
 private:
     QLocalServer m_server;
@@ -93,7 +93,7 @@ private:
 static int usage(FILE *out) {
     std::fputs("Usage: lightswitch [command]\n\n"
                "  (none), toggle   show or hide the capture window (starts it if needed)\n"
-               "  later            open straight to the list of open notes\n"
+               "  open             open the notes window\n"
                "  daemon           start resident with the window hidden (for autostart)\n"
                "  add <text>       save a note without opening the window\n"
                "  list [--json]    print open notes\n"
@@ -135,7 +135,7 @@ static int runHeadless(int argc, char *argv[]) {
     } else {
         for (const QVariant &item : notes.open()) {
             const QVariantMap m = item.toMap();
-            std::printf("%-8s %s\n", qPrintable(m["when"].toString()), qPrintable(m["text"].toString()));
+            std::printf("%-10s %-8s %s\n", qPrintable(m["day"].toString()), qPrintable(m["time"].toString()), qPrintable(m["text"].toString()));
         }
     }
     return 0;
@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
         return usage(stdout);
     if (command == "add" || command == "list" || command == "path")
         return runHeadless(argc, argv);
-    if (command == "toggle" || command == "show" || command == "later" || command == "quit") {
+    if (command == "toggle" || command == "show" || command == "open" || command == "later" || command == "quit") {
         if (sendToResident(command.c_str()))
             return 0;
         if (command == "quit")
@@ -189,7 +189,7 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("notes", &notes);
     engine.rootContext()->setContextProperty("ipc", &ipc);
     engine.rootContext()->setContextProperty("startVisible", command != "daemon");
-    engine.rootContext()->setContextProperty("startMode", QString::fromStdString(command == "later" ? "later" : "capture"));
+    engine.rootContext()->setContextProperty("startMode", QString::fromStdString(command == "open" || command == "later" ? "open" : "capture"));
     engine.load(QUrl("qrc:/Main.qml"));
     if (engine.rootObjects().isEmpty())
         return 1;

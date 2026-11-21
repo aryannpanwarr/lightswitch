@@ -43,6 +43,28 @@ private slots:
         QCOMPARE(notes.openCount(), 2);
     }
 
+    void editRemoveAndUndo()
+    {
+        QTemporaryDir dir;
+        Notes notes(dir.filePath("n.md"), dir.filePath("d.txt"));
+        notes.capture("one\ntwo", QDateTime(QDate(2026, 11, 22), QTime(9, 5)));
+        const auto first = notes.items().first().toMap();
+        QCOMPARE(first["text"].toString(), QString("two"));
+        QVERIFY(notes.edit(first["line"].toInt(), "  two, rewritten "));
+        QVERIFY(read(dir.filePath("n.md")).contains("- [ ] 2026-11-22 09:05 · two, rewritten\n"));
+        QVERIFY(notes.setDone(notes.items().first().toMap()["line"].toInt(), true));
+        QCOMPARE(notes.doneCount(), 1);
+        QVERIFY(notes.remove(notes.items().last().toMap()["line"].toInt()));
+        QCOMPARE(notes.items().size(), 1);
+        QVERIFY(notes.undo());
+        QVERIFY(notes.undo());
+        QVERIFY(notes.undo());
+        QCOMPARE(notes.items().last().toMap()["text"].toString(), QString("one"));
+        QCOMPARE(notes.items().first().toMap()["text"].toString(), QString("two"));
+        QCOMPARE(notes.openCount(), 2);
+        QVERIFY(!notes.undo());
+    }
+
     void keepsLinesItDidNotWrite()
     {
         QTemporaryDir dir;

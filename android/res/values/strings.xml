@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="keyboard_watch">Lets Lightswitch ignore triple-taps while you type. It only checks whether a keyboard is on screen and never reads what is on it.</string>
+</resources>

@@ -76,7 +76,7 @@ public final class NotesActivity extends Activity {
         setup.setOrientation(LinearLayout.VERTICAL);
         setup.setPadding(dp(18), dp(16), dp(18), dp(16));
         setup.setBackground(rounded(0xFF22200F, 0xFF5C4F0A, 14));
-        TextView setupText = text("Turn on triple-tap: allow Lightswitch to display over other apps. Then triple-tap the right edge of the screen from anywhere.", 14, INK);
+        TextView setupText = text("Turn on triple-tap: allow Lightswitch to display over other apps. Then triple-tap anywhere on the screen, in any app.", 14, INK);
         setup.addView(setupText);
         TextView setupButton = text("Allow", 15, ACCENT);
         setupButton.setTypeface(Typeface.DEFAULT_BOLD);
@@ -116,7 +116,7 @@ public final class NotesActivity extends Activity {
         grid.addView(right, rp);
         page.addView(grid);
 
-        empty = text("Notes you dump appear here\n\nTriple-tap the right edge, anywhere", 15, DIM);
+        empty = text("Notes you dump appear here\n\nTriple-tap anywhere, in any app", 15, DIM);
         empty.setGravity(Gravity.CENTER);
         empty.setPadding(0, dp(80), 0, 0);
         page.addView(empty, new LinearLayout.LayoutParams(-1, -2));
@@ -150,10 +150,17 @@ public final class NotesActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        TapService.appVisible = true;
         boolean allowed = Settings.canDrawOverlays(this);
         setup.setVisibility(allowed ? View.GONE : View.VISIBLE);
         TapService.start(this);
         render();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        TapService.appVisible = false;
     }
 
     private void render() {
@@ -172,7 +179,7 @@ public final class NotesActivity extends Activity {
             shown++;
         }
         empty.setVisibility(shown == 0 ? View.VISIBLE : View.GONE);
-        empty.setText(q.isEmpty() ? "Notes you dump appear here\n\nTriple-tap the right edge, anywhere" : "No matching notes");
+        empty.setText(q.isEmpty() ? "Notes you dump appear here\n\nTriple-tap anywhere, in any app" : "No matching notes");
     }
 
     private View card(Notes.Item item) {

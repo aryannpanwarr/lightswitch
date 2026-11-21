@@ -9,31 +9,44 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.graphics.PixelFormat;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.SystemClock;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.provider.Settings;
 import android.view.Gravity;
-import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.view.WindowManager;
 
-// Keeps a thin strip on the right edge of the screen, over every app.
-// Three quick taps on it open the quick editor. It runs as a foreground
-// service so Android keeps it (and the warm process) alive, which is also
-// what makes the editor open instantly.
+// Triple-tap anywhere on the screen, in any app, opens the quick editor.
+//
+// Android never shows an app where another app is touched, but a window that
+// asks to "watch outside touches" is told *that* a finger went down somewhere
+// else (with the position blanked). That is enough to count taps without
+// blocking a single one: the window is 1 pixel and passes everything through.
+//
+// Guards against false triggers, since a touch-down is all we see:
+//  - exactly three, each within TAP_GAP_MS of the last, then QUIET_MS of
+//    nothing (typing and flicking keep going, so they never pause on three);
+//  - never while a keyboard is up (KeyboardWatch), or while Lightswitch
+//    itself is on screen.
 public final class TapService extends Service {
     private static final String CHANNEL = "edge";
-    private static final long TAP_GAP_MS = 400;
+    private static final long TAP_GAP_MS = 320;
+    private static final long QUIET_MS = 260;
+
+    static volatile boolean appVisible;
 
     private WindowManager windows;
-    private View strip;
+    private View watcher;
+    private final Handler handler = new Handler(Looper.getMainLooper());
     private int taps;
     private long lastTap;
-    private float downX, downY;
+    private final Runnable fire = this::open;
 
     static void start(Context context) {
         if (!Settings.canDrawOverlays(context)) return;
@@ -44,7 +57,7 @@ public final class TapService extends Service {
     public void onCreate() {
         super.onCreate();
         NotificationManager nm = getSystemService(NotificationManager.class);
-        NotificationChannel channel = new NotificationChannel(CHANNEL, "Edge tap", NotificationManager.IMPORTANCE_MIN);
+        NotificationChannel channel = new NotificationChannel(CHANNEL, "Triple tap", NotificationManager.IMPORTANCE_MIN);
         channel.setShowBadge(false);
         nm.createNotificationChannel(channel);
 
@@ -55,7 +68,7 @@ public final class TapService extends Service {
         Notification notification = new Notification.Builder(this, CHANNEL)
                 .setSmallIcon(android.R.drawable.ic_menu_edit)
                 .setContentTitle("Lightswitch")
-                .setContentText("Triple-tap the right edge to dump a thought")
+                .setContentText("Triple-tap anywhere to dump a thought")
                 .setContentIntent(open)
                 .setOngoing(true)
                 .build();
@@ -64,56 +77,43 @@ public final class TapService extends Service {
         else
             startForeground(1, notification);
 
-        addStrip();
+        addWatcher();
     }
 
-    private void addStrip() {
+    private void addWatcher() {
         if (!Settings.canDrawOverlays(this)) { stopSelf(); return; }
         windows = getSystemService(WindowManager.class);
-        float density = getResources().getDisplayMetrics().density;
-        int height = getResources().getDisplayMetrics().heightPixels;
-
-        strip = new View(this);
-        // A faint line so you can find it; the touch area is wider than what shows.
-        GradientDrawable line = new GradientDrawable();
-        line.setColor(0x33FFD60A);
-        line.setCornerRadius(4 * density);
-        strip.setBackground(new android.graphics.drawable.InsetDrawable(line, Math.round(14 * density), 0, Math.round(2 * density), 0));
-
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                Math.round(20 * density), Math.round(height * 0.28f),
+        watcher = new View(this);
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams(1, 1,
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                         | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                        | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                        | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
                 PixelFormat.TRANSLUCENT);
-        params.gravity = Gravity.END | Gravity.CENTER_VERTICAL;
-
-        final int slop = ViewConfiguration.get(this).getScaledTouchSlop();
-        strip.setOnTouchListener((v, e) -> {
-            switch (e.getActionMasked()) {
-                case MotionEvent.ACTION_DOWN:
-                    downX = e.getRawX(); downY = e.getRawY();
-                    return true;
-                case MotionEvent.ACTION_UP:
-                    if (Math.abs(e.getRawX() - downX) > slop * 2 || Math.abs(e.getRawY() - downY) > slop * 2) {
-                        taps = 0;
-                        return true;
-                    }
-                    long now = SystemClock.uptimeMillis();
-                    taps = now - lastTap <= TAP_GAP_MS ? taps + 1 : 1;
-                    lastTap = now;
-                    if (taps >= 3) {
-                        taps = 0;
-                        v.performHapticFeedback(HapticFeedbackConstants.CONFIRM);
-                        startActivity(new Intent(this, CaptureActivity.class)
-                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION));
-                    }
-                    return true;
-            }
-            return true;
+        params.gravity = Gravity.TOP | Gravity.START;
+        watcher.setOnTouchListener((v, e) -> {
+            if (e.getActionMasked() == MotionEvent.ACTION_OUTSIDE) onTouchDown();
+            return false;
         });
-        windows.addView(strip, params);
+        windows.addView(watcher, params);
+    }
+
+    private void onTouchDown() {
+        handler.removeCallbacks(fire);
+        if (appVisible || KeyboardWatch.keyboardVisible) { taps = 0; return; }
+        long now = SystemClock.uptimeMillis();
+        taps = now - lastTap <= TAP_GAP_MS ? taps + 1 : 1;
+        lastTap = now;
+        if (taps == 3) handler.postDelayed(fire, QUIET_MS);
+    }
+
+    private void open() {
+        taps = 0;
+        if (appVisible || KeyboardWatch.keyboardVisible) return;
+        Vibrator vibrator = getSystemService(Vibrator.class);
+        if (vibrator != null) vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK));
+        startActivity(new Intent(this, CaptureActivity.class)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION));
     }
 
     @Override
@@ -123,7 +123,7 @@ public final class TapService extends Service {
 
     @Override
     public void onDestroy() {
-        if (strip != null && windows != null) windows.removeView(strip);
+        if (watcher != null && windows != null) windows.removeView(watcher);
         super.onDestroy();
     }
 

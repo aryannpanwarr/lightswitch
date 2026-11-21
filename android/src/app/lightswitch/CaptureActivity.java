@@ -143,8 +143,14 @@ public final class CaptureActivity extends Activity {
     @Override public void onBackPressed() { release(); }
 
     // Switching apps or turning the screen off counts as letting go.
+    @Override protected void onResume() {
+        super.onResume();
+        TapService.appVisible = true;
+    }
+
     @Override protected void onPause() {
         super.onPause();
+        TapService.appVisible = false;
         if (!finished) release();
     }
 
